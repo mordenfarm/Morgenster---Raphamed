@@ -1,18 +1,30 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Removed missing favicon link to fix 404 error -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Morgenster Hospital</title>
     <script>
-      // Suppress Tailwind CDN production warning
+      // Aggressively suppress Tailwind CDN production warning
       (function() {
         const originalWarn = console.warn;
+        const originalLog = console.log;
+        
+        const shouldSuppress = (msg) => {
+           return typeof msg === 'string' && (
+             msg.includes('cdn.tailwindcss.com') || 
+             msg.includes('should not be used in production')
+           );
+        };
+
         console.warn = function(message, ...args) {
-          if (typeof message === 'string' && message.includes('cdn.tailwindcss.com')) return;
+          if (shouldSuppress(message)) return;
           originalWarn.apply(console, [message, ...args]);
+        };
+        
+        console.log = function(message, ...args) {
+          if (shouldSuppress(message)) return;
+          originalLog.apply(console, [message, ...args]);
         };
       })();
     </script>
@@ -26,7 +38,9 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.553.0",
     "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
     "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.5",
-    "html2canvas": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm"
+    "html2canvas": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
