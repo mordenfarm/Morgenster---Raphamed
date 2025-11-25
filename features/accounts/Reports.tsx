@@ -578,7 +578,7 @@ const Reports: React.FC = () => {
                     break;
                 
                 case 'patients_served':
-                    const servedPatientIds = [...new Set(billsInRange.map(b => b.patientId))];
+                    const servedPatientIds = [...new Set(billsInRange.map(b => b.patientId))].length;
                     const servedPatientsData = allPatients
                         .filter(p => servedPatientIds.includes(p.id!))
                         .map(p => ({
@@ -746,6 +746,26 @@ const Reports: React.FC = () => {
         }
     }
 
+    const getSummaryIconSafe = (key: string) => {
+        // FIX: Explicitly define props to any to bypass strict type check if Lucide icon types are mismatched or incomplete in current env.
+        const iconProps: any = { size: 32, className: "text-white" };
+        const containerClass = "p-4 rounded-lg";
+        switch (key) {
+            case 'Total Sales': return <div className={`bg-blue-500 ${containerClass}`}><DollarSign {...iconProps} /></div>;
+            case 'Cash Received': return <div className={`bg-green-500 ${containerClass}`}><Banknote {...iconProps} /></div>;
+            case 'EFT Received': return <div className={`bg-indigo-500 ${containerClass}`}><CreditCard {...iconProps} /></div>;
+            case 'Total Outstanding Balance': return <div className={`bg-red-500 ${containerClass}`}><AlertTriangle {...iconProps} /></div>;
+            case 'Total Registered Patients': return <div className={`bg-blue-500 ${containerClass}`}><Users {...iconProps} /></div>;
+            case 'Currently Admitted': return <div className={`bg-purple-500 ${containerClass}`}><BedDouble {...iconProps} /></div>;
+            case 'Pending Discharge': return <div className={`bg-yellow-500 ${containerClass}`}><LogOut {...iconProps} /></div>;
+            case 'Total Discharged': return <div className={`bg-green-500 ${containerClass}`}><UserCheck {...iconProps} /></div>;
+            case 'Stock Received (Units)': return <div className={`bg-blue-500 ${containerClass}`}><ArrowDown {...iconProps} /></div>;
+            case 'Stock Sold (Units)': return <div className={`bg-orange-500 ${containerClass}`}><ArrowUp {...iconProps} /></div>;
+            case 'Revenue from Stock ($)': return <div className={`bg-teal-500 ${containerClass}`}><DollarSign {...iconProps} /></div>;
+            default: return <div className={`bg-gray-500 ${containerClass}`}><BarChartIcon {...iconProps} /></div>;
+        }
+    }
+
     return (
         <div>
             <h1 className="text-3xl font-bold text-white mb-6">Reports</h1>
@@ -842,7 +862,7 @@ const Reports: React.FC = () => {
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 my-6">
                              {Object.entries(generatedReport.summary).map(([key, value]) => (
                                 <div key={key} className="summary-card">
-                                    {getSummaryIcon(key)}
+                                    {getSummaryIconSafe(key)}
                                     <div>
                                         <p className="text-sm text-slate-600 font-medium">{key}</p>
                                         <p className="text-3xl font-bold text-slate-800 mt-1">{typeof value === 'number' ? (key.includes('Value') || key.includes('Sales') || key.includes('Balance') || key.includes('Received') || key.includes('($)') || key.includes('Revenue')) ? formatCurrency(value) : value.toLocaleString() : value}</p>

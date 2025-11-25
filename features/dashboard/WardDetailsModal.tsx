@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../../services/firebase';
 import { Ward, Patient, AdmissionRecord } from '../../types';
 import Modal from '../../components/utils/Modal';
 import LoadingSpinner from '../../components/utils/LoadingSpinner';
-import { Bed, Clock, User } from 'lucide-react';
+import { Bed, Clock, User, Calendar, CheckCircle } from 'lucide-react';
 
 interface WardDetailsModalProps {
   ward: Ward;
@@ -19,6 +20,7 @@ interface OccupiedBedInfo {
 const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) => {
   const [beds, setBeds] = useState<Map<number, OccupiedBedInfo>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [occupiedCount, setOccupiedCount] = useState(0);
 
   useEffect(() => {
     if (!ward) return;
@@ -32,10 +34,12 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
           .get();
 
         const bedMap = new Map<number, OccupiedBedInfo>();
+        let count = 0;
         
         for (const doc of patientsSnapshot.docs) {
           const patient = { id: doc.id, ...doc.data() } as Patient;
           if (patient.currentBedNumber) {
+            count++;
             // Fetch the latest admission record for admission date
             const admissionSnapshot = await db.collection('patients').doc(patient.id!)
               .collection('admissionHistory').orderBy('admissionDate', 'desc').limit(1).get();
@@ -50,6 +54,7 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
           }
         }
         setBeds(bedMap);
+        setOccupiedCount(count);
       } catch (error) {
         console.error("Error fetching bed details:", error);
       } finally {
@@ -62,39 +67,94 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
   
   if (!ward) return null;
 
-  return (
-    <Modal isOpen={true} onClose={onClose} title={`Ward Details: ${ward.name}`}>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="max-h-[70vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: ward.totalBeds }, (_, i) => i + 1).map((bedNumber) => {
-                const bedInfo = beds.get(bedNumber);
-                const isOccupied = !!bedInfo;
+  const freeBeds = ward.totalBeds - occupiedCount;
 
-                return (
-                <div key={bedNumber} className={`p-4 rounded-lg border-2 ${isOccupied ? 'border-sky-700 bg-gray-800' : 'border-gray-700 bg-gray-900/50'}`}>
-                    <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-lg text-white">Bed {bedNumber}</h4>
-                        <Bed size={20} className={isOccupied ? 'text-sky-400' : 'text-gray-500'} />
-                    </div>
-                    {isOccupied ? (
-                    <div className="mt-2 text-sm">
-                        <p className="text-xs text-gray-400 mb-1">Occupied by:</p>
-                        <Link to={`/patients/${bedInfo.patient.id}`} className="font-semibold text-sky-400 hover:underline flex items-center gap-2" onClick={onClose}>
-                           <User size={14}/> {bedInfo.patient.name} {bedInfo.patient.surname}
-                        </Link>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-2">
-                           <Clock size={12}/> Admitted: {bedInfo.admissionDate ? bedInfo.admissionDate.toLocaleDateString() : 'N/A'}
-                        </p>
-                    </div>
-                    ) : (
-                    <p className="mt-2 text-sm text-green-400">Available</p>
-                    )}
+  return (
+    <Modal isOpen={true} onClose={onClose} title={`${ward.name} - Overview`} size="xl">
+      {loading ? (
+        <div className="h-64 flex items-center justify-center">
+            <LoadingSpinner />
+        </div>
+      ) : (
+        <div>
+            {/* Summary Header */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700 text-center">
+                    <p className="text-xs text-gray-400 uppercase">Total Beds</p>
+                    <p className="text-2xl font-bold text-white">{ward.totalBeds}</p>
                 </div>
-                );
-            })}
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700 text-center">
+                    <p className="text-xs text-gray-400 uppercase">Occupied</p>
+                    <p className="text-2xl font-bold text-sky-400">{occupiedCount}</p>
+                </div>
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700 text-center">
+                    <p className="text-xs text-gray-400 uppercase">Available</p>
+                    <p className="text-2xl font-bold text-emerald-400">{freeBeds}</p>
+                </div>
+            </div>
+
+            <div className="max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {Array.from({ length: ward.totalBeds }, (_, i) => i + 1).map((bedNumber) => {
+                    const bedInfo = beds.get(bedNumber);
+                    const isOccupied = !!bedInfo;
+
+                    return (
+                    <div 
+                        key={bedNumber} 
+                        className={`relative flex flex-col p-4 rounded-lg border-l-4 transition-all ${
+                            isOccupied 
+                            ? 'bg-gray-800 border-sky-600 border-y border-r border-gray-700' 
+                            : 'bg-gray-900/30 border-emerald-500/50 border-y border-r border-gray-800 hover:bg-gray-800/50'
+                        }`}
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Bed</span>
+                                <span className="text-xl font-bold text-white">{bedNumber}</span>
+                            </div>
+                            {isOccupied ? (
+                                <Bed size={18} className="text-sky-400" />
+                            ) : (
+                                <CheckCircle size={18} className="text-emerald-500/50" />
+                            )}
+                        </div>
+
+                        {isOccupied ? (
+                        <div className="flex-grow flex flex-col justify-between">
+                            <div>
+                                <p className="text-xs text-gray-400 mb-1">Patient</p>
+                                <Link 
+                                    to={`/patients/${bedInfo.patient.id}`} 
+                                    className="text-sm font-semibold text-sky-400 hover:text-sky-300 hover:underline block mb-2 truncate" 
+                                    onClick={onClose}
+                                    title={`${bedInfo.patient.name} ${bedInfo.patient.surname}`}
+                                >
+                                {bedInfo.patient.name} {bedInfo.patient.surname}
+                                </Link>
+                            </div>
+                            <div className="pt-3 border-t border-gray-700 mt-2">
+                                <div className="flex items-center gap-2 text-xs text-gray-400">
+                                    <Calendar size={12} />
+                                    <span>
+                                        {bedInfo.admissionDate 
+                                            ? bedInfo.admissionDate.toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) 
+                                            : 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        ) : (
+                        <div className="flex-grow flex items-center justify-center">
+                            <span className="px-3 py-1 rounded-full bg-emerald-900/20 text-emerald-400 text-xs font-medium border border-emerald-900/30">
+                                Available
+                            </span>
+                        </div>
+                        )}
+                    </div>
+                    );
+                })}
+                </div>
             </div>
         </div>
       )}

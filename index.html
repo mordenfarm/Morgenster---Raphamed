@@ -1224,6 +1224,23 @@
       justify-content: center;
       flex-shrink: 0; /* Prevent icon from shrinking */
     }
+
+    /* Custom Scrollbar for Modals/Containers */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #0d1117; 
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #30363d; 
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #484f58; 
+    }
   </style>
 </head>
   <body class="bg-[#0D1117]">

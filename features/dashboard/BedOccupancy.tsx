@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { db } from '../../services/firebase';
 import { Ward, Patient } from '../../types';
 import { useNotification } from '../../context/NotificationContext';
-import { BedDouble } from 'lucide-react';
+import { BedDouble, Activity, Users } from 'lucide-react';
 
 interface OccupancyData {
   ward: Ward;
@@ -56,35 +57,82 @@ const BedOccupancy: React.FC<BedOccupancyProps> = ({ onWardClick }) => {
     }, [addNotification]);
     
     if (loading) {
-        return <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => <div key={i} className="bg-[#161B22] border border-gray-700 p-4 rounded-lg h-24 animate-pulse"></div>)}
-        </div>
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="bg-[#161B22] border border-gray-700 rounded-xl h-40 animate-pulse"></div>
+                ))}
+            </div>
+        );
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {occupancy.map(({ ward, occupied }) => {
-                const percentage = ward.totalBeds > 0 ? (occupied / ward.totalBeds) * 100 : 0;
-                const isFull = occupied >= ward.totalBeds;
+                const percentage = ward.totalBeds > 0 ? Math.round((occupied / ward.totalBeds) * 100) : 0;
+                const available = ward.totalBeds - occupied;
+                const isFull = available <= 0;
                 
+                // Color Logic
+                let statusColor = 'text-emerald-400';
+                let barColor = 'bg-emerald-500';
+                let borderColor = 'border-gray-700/50';
+                
+                if (isFull) {
+                    statusColor = 'text-red-400';
+                    barColor = 'bg-red-500';
+                    borderColor = 'border-red-900/30';
+                } else if (percentage >= 80) {
+                    statusColor = 'text-orange-400';
+                    barColor = 'bg-orange-500';
+                    borderColor = 'border-orange-900/30';
+                }
+
                 return (
                     <button 
                         key={ward.id} 
                         onClick={() => onWardClick(ward)}
-                        className="bg-[#161B22] border border-gray-700 p-4 rounded-lg text-left hover:bg-gray-800 hover:border-sky-700 transition-all focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className={`group relative flex flex-col justify-between bg-[#161B22] border ${borderColor} rounded-xl p-5 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/10 transition-all duration-300 text-left overflow-hidden h-full min-h-[180px]`}
                     >
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-white text-sm truncate">{ward.name}</h4>
-                             <BedDouble size={16} className={`flex-shrink-0 ${isFull ? 'text-red-500' : 'text-gray-500'}`} />
+                        {/* Decorative Background Icon */}
+                        <div className="absolute -bottom-4 -right-4 text-gray-800 opacity-20 group-hover:scale-110 transition-transform duration-500">
+                            <BedDouble size={100} />
                         </div>
-                        <p className="text-2xl font-bold text-white mt-2">
-                            {occupied} <span className="text-lg font-medium text-gray-400">/ {ward.totalBeds}</span>
-                        </p>
-                        <div className="w-full bg-gray-700 rounded-full h-1.5 mt-2">
-                            <div 
-                                className={`h-1.5 rounded-full ${isFull ? 'bg-red-600' : 'bg-sky-600'}`} 
-                                style={{ width: `${percentage}%` }}
-                            ></div>
+
+                        {/* Header */}
+                        <div className="flex justify-between items-start z-10 mb-2">
+                            <div className={`p-2 rounded-lg bg-gray-800/80 backdrop-blur-sm border border-gray-700 group-hover:border-sky-500/30 transition-colors`}>
+                                <BedDouble size={20} className={statusColor} />
+                            </div>
+                            <span className={`text-[10px] font-bold px-2 py-1 rounded-full border uppercase tracking-wider ${isFull ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-emerald-900/20 border-emerald-800 text-emerald-400'}`}>
+                                {isFull ? 'Full' : 'Available'}
+                            </span>
+                        </div>
+
+                        {/* Content */}
+                        <div className="z-10">
+                            <h3 className="text-lg font-bold text-white truncate mb-1">{ward.name}</h3>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-3xl font-extrabold text-white">{occupied}</span>
+                                <span className="text-sm text-gray-400 font-medium">/ {ward.totalBeds} Occupied</span>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="z-10 mt-4">
+                            <div className="flex justify-between text-xs text-gray-500 mb-1.5 font-medium">
+                                <span>Capacity</span>
+                                <span>{percentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden border border-gray-700">
+                                <div 
+                                    className={`h-full rounded-full transition-all duration-500 ${barColor}`} 
+                                    style={{ width: `${percentage}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2 text-right">
+                                {available} bed{available !== 1 ? 's' : ''} free
+                            </p>
                         </div>
                     </button>
                 );
