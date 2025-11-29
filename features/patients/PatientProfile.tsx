@@ -771,15 +771,20 @@ const PatientProfile: React.FC = () => {
   const handleSave = async () => {
     if (!id) return;
     try {
-        await db.collection('patients').doc(id).update({
+        const updateData: any = {
             phoneNumber: formData.phoneNumber,
             residentialAddress: formData.residentialAddress,
             nokName: formData.nokName,
             nokSurname: formData.nokSurname,
             nokPhoneNumber: formData.nokPhoneNumber,
             nokAddress: formData.nokAddress,
-            nationalId: formData.nationalId,
-        });
+        };
+        // Only include if defined to avoid "Unsupported field value: undefined"
+        if (formData.nationalId !== undefined) {
+            updateData.nationalId = formData.nationalId;
+        }
+        
+        await db.collection('patients').doc(id).update(updateData);
         addNotification('Patient profile updated successfully!', 'success');
         setIsEditing(false);
         fetchPatientData(true);

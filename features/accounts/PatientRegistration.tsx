@@ -191,13 +191,15 @@ const PatientRegistration: React.FC = () => {
             const hospitalNumber = await generateHospitalNumber();
             const fullPhoneNumber = `${formData.phoneCountryCode}${formData.phoneNumber}`;
             
+            // Construct patient object, omitting undefined fields to satisfy Firestore
             const newPatient: Omit<Patient, 'id'> = {
                 hospitalNumber,
                 name: formData.name,
                 surname: formData.surname,
                 nationality: formData.nationality,
-                nationalId: formData.nationality === 'Zimbabwean' ? formData.nationalId : undefined,
-                passportNumber: formData.nationality !== 'Zimbabwean' ? formData.passportNumber : undefined,
+                // Conditionally add keys only if they are valid for the selected nationality
+                ...(formData.nationality === 'Zimbabwean' ? { nationalId: formData.nationalId } : {}),
+                ...(formData.nationality !== 'Zimbabwean' ? { passportNumber: formData.passportNumber } : {}),
                 dateOfBirth: formData.dateOfBirth,
                 age: age,
                 maritalStatus: formData.maritalStatus,
