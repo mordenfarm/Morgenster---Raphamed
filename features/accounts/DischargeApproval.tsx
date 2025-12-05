@@ -152,15 +152,17 @@ const DischargeApproval: React.FC = () => {
 
     if (loading) return <LoadingSpinner />;
 
-    // Helper for Zimbabwe Date
-    const toZimbabweDate = (dateVal: any) => {
+    // Helper for Zimbabwe Date Time
+    const formatDateTime = (dateVal: any) => {
         if (!dateVal) return 'Unknown';
         const date = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
-        return date.toLocaleDateString('en-GB', { 
+        return date.toLocaleString('en-GB', { 
             timeZone: 'Africa/Harare', 
             year: 'numeric', 
             month: '2-digit', 
-            day: '2-digit' 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -260,8 +262,7 @@ const DischargeApproval: React.FC = () => {
                                 <tr>
                                     <th className="px-6 py-4 font-medium">Patient Name</th>
                                     <th className="px-6 py-4 font-medium">ID / Passport</th>
-                                    <th className="px-6 py-4 font-medium">Date Admitted</th>
-                                    <th className="px-6 py-4 font-medium">Date Discharged</th>
+                                    <th className="px-6 py-4 font-medium">Time Discharged</th>
                                     <th className="px-6 py-4 font-medium text-right">Total Bill</th>
                                     <th className="px-6 py-4 font-medium text-center">Status</th>
                                 </tr>
@@ -270,8 +271,8 @@ const DischargeApproval: React.FC = () => {
                                 {historyPatients.length > 0 ? (
                                     historyPatients.map((p) => {
                                         const isCredit = p.financials.balance > 0;
-                                        const admittedDate = toZimbabweDate(p.registrationDate);
-                                        const dischargedDate = toZimbabweDate((p as any).lastDischargeDate);
+                                        // Removed admission date formatting as it's no longer used in the table
+                                        const dischargedDate = formatDateTime((p as any).lastDischargeDate);
 
                                         return (
                                             <tr key={p.id} className="hover:bg-gray-800/30 transition-colors">
@@ -281,9 +282,6 @@ const DischargeApproval: React.FC = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-300">
                                                     {p.nationalId || p.passportNumber || <span className="text-gray-600 italic">N/A</span>}
-                                                </td>
-                                                <td className="px-6 py-4 text-gray-400">
-                                                    {admittedDate}
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-400">
                                                     {dischargedDate}
@@ -305,7 +303,7 @@ const DischargeApproval: React.FC = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                                             No discharge history found.
                                         </td>
                                     </tr>

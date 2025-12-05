@@ -39,33 +39,34 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, unreadCount, unreadMess
 
   return (
     <>
-      <header className="flex items-center justify-between px-6 py-4 bg-[#161B22] border-b border-gray-700 no-print">
-        <div className="flex items-center">
-          <button onClick={() => setSidebarOpen(true)} className="text-gray-400 focus:outline-none lg:hidden">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 bg-[#161B22] border-b border-gray-700 no-print sticky top-0 z-40">
+        <div className="flex items-center min-w-0">
+          <button onClick={() => setSidebarOpen(true)} className="text-gray-400 focus:outline-none lg:hidden mr-3">
             <span className="flickering-dot-container">
                 <Menu size={24} />
                 {unreadMessageCount > 0 && <span className="flickering-dot"></span>}
             </span>
           </button>
-          <div className="relative mx-4 lg:mx-0">
-            <h1 className="hidden lg:block text-lg font-semibold text-gray-200 truncate">RCZ MORGENSTER HOSPITAL</h1>
-            <h1 className="block lg:hidden text-lg font-semibold text-gray-200 truncate">Morgenster Hospital</h1>
+          <div className="flex flex-col min-w-0">
+            <h1 className="hidden md:block text-lg font-semibold text-gray-200 truncate">RCZ MORGENSTER HOSPITAL</h1>
+            <h1 className="block md:hidden text-lg font-semibold text-gray-200 truncate">Morgenster</h1>
             {userProfile && (
-              <p className="text-xs text-gray-400 truncate">
-                {userProfile.name} {userProfile.surname} ({userProfile.role})
+              <p className="text-xs text-gray-400 truncate max-w-[150px] sm:max-w-xs">
+                {userProfile.name} {userProfile.surname} <span className="hidden sm:inline">({userProfile.role})</span>
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center space-x-6">
+        
+        <div className="flex items-center space-x-3 sm:space-x-6 flex-shrink-0 ml-2">
           {!isOnline && (
-            <div className="flex items-center text-yellow-500 bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-700/50 animate-pulse">
+            <div className="hidden sm:flex items-center text-yellow-500 bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-700/50 animate-pulse">
               <WifiOff size={16} className="mr-2" />
               <span className="text-xs font-semibold">Offline Mode</span>
             </div>
           )}
 
-          <NavLink to="/notifications" className="text-gray-400 hover:text-white notification-badge-container" aria-label="View notifications">
+          <NavLink to="/notifications" className="text-gray-400 hover:text-white notification-badge-container p-1" aria-label="View notifications">
             <Bell size={24} />
             {unreadCount > 0 && (
               <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>

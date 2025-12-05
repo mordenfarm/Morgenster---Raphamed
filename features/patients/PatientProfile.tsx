@@ -13,7 +13,7 @@ import LoadingSpinner from '../../components/utils/LoadingSpinner';
 import { 
     Edit, Save, X, User, Phone, Heart, DollarSign, FileClock, CreditCard, PlusCircle, 
     UserPlus as RegistrationIcon, Calendar, Briefcase, Stethoscope, HeartPulse, 
-    Microscope, Bone, Pill, Clipboard, ClipboardEdit, ClipboardCheck, LogIn, LogOut, Printer, Bed, ChevronDown, FilePlus, AlertCircle, Fingerprint
+    Microscope, Bone, Pill, Clipboard, ClipboardEdit, ClipboardCheck, LogIn, LogOut, Printer, Bed, ChevronDown, FilePlus, AlertCircle, Fingerprint, Check
 } from 'lucide-react';
 import MakePaymentModal from '../accounts/MakePaymentModal';
 import Modal from '../../components/utils/Modal';
@@ -394,8 +394,7 @@ const AdmitPatientModal: React.FC<{
     const [wards, setWards] = useState<Ward[]>([]);
     const [occupancy, setOccupancy] = useState<Record<string, { occupied: number, beds: number[] }>>({});
     const [selectedWardId, setSelectedWardId] = useState('');
-    const [bedNumber, setBedNumber] = useState('');
-    const [isOccupiedError, setIsOccupiedError] = useState(false);
+    const [selectedBedNumber, setSelectedBedNumber] = useState<number | null>(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -431,28 +430,24 @@ const AdmitPatientModal: React.FC<{
         fetchWardData();
     }, [isOpen, addNotification]);
 
+    // Reset bed selection when ward changes
     useEffect(() => {
-        const bedNum = parseInt(bedNumber);
-        if (selectedWardId && !isNaN(bedNum) && occupancy[selectedWardId]?.beds.includes(bedNum)) {
-            setIsOccupiedError(true);
-        } else {
-            setIsOccupiedError(false);
-        }
-    }, [bedNumber, selectedWardId, occupancy]);
+        setSelectedBedNumber(null);
+    }, [selectedWardId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const bedNum = parseInt(bedNumber);
-        if (!userProfile || !selectedWardId || isNaN(bedNum) || bedNum <= 0) {
-            addNotification('Please select a ward and enter a valid bed number.', 'warning');
+        
+        if (!userProfile || !selectedWardId || !selectedBedNumber) {
+            addNotification('Please select a ward and a bed.', 'warning');
             return;
         }
 
         const selectedWard = wards.find(w => w.id === selectedWardId);
         if (!selectedWard) return;
 
-        if (occupancy[selectedWardId]?.beds.includes(bedNum)) {
-            addNotification(`Bed number ${bedNum} is already occupied in this ward.`, 'error');
+        if (occupancy[selectedWardId]?.beds.includes(selectedBedNumber)) {
+            addNotification(`Bed number ${selectedBedNumber} is already occupied.`, 'error');
             return;
         }
         
@@ -466,7 +461,7 @@ const AdmitPatientModal: React.FC<{
                 status: 'Admitted',
                 currentWardId: selectedWard.id,
                 currentWardName: selectedWard.name,
-                currentBedNumber: bedNum,
+                currentBedNumber: selectedBedNumber,
             });
 
             // Create a new admission record
@@ -477,7 +472,7 @@ const AdmitPatientModal: React.FC<{
                 admittedByName: `${userProfile.name} ${userProfile.surname}`,
                 wardId: selectedWard.id,
                 wardName: selectedWard.name,
-                bedNumber: bedNum,
+                bedNumber: selectedBedNumber,
                 lastBilledDate: firebase.firestore.FieldValue.serverTimestamp() 
             });
 
@@ -493,13 +488,15 @@ const AdmitPatientModal: React.FC<{
         }
     };
 
+    const selectedWard = wards.find(w => w.id === selectedWardId);
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Admit Patient to Ward">
+        <Modal isOpen={isOpen} onClose={onClose} title="Admit Patient to Ward" size="lg">
             {loading ? <LoadingSpinner /> : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">Select Ward</label>
-                        <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2">
+                        <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                            {wards.map(ward => {
                                 const occupiedCount = occupancy[ward.id]?.occupied || 0;
                                 const isFull = occupiedCount >= ward.totalBeds;
@@ -522,29 +519,73 @@ const AdmitPatientModal: React.FC<{
                            })}
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300">Bed Number</label>
-                        <input
-                            type="number"
-                            value={bedNumber}
-                            onChange={e => setBedNumber(e.target.value)}
-                            required
-                            min="1"
-                            placeholder="Enter bed number"
-                            className={`mt-1 block w-full modern-input ${isOccupiedError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
-                        />
-                        {isOccupiedError && (
-                            <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
-                                <AlertCircle size={14} /> Bed {bedNumber} is already occupied.
-                            </p>
-                        )}
-                        {selectedWardId && occupancy[selectedWardId] && !isOccupiedError && (
-                            <p className="text-xs text-gray-500 mt-1">Occupied beds: {occupancy[selectedWardId].beds.sort((a,b) => a-b).join(', ')}</p>
-                        )}
-                    </div>
-                    <div className="flex justify-end space-x-4 pt-2">
+                    
+                    {/* Bed Grid Selection */}
+                    {selectedWard && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-3">
+                                Select Bed in <span className="text-sky-400">{selectedWard.name}</span>
+                            </label>
+                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                                {Array.from({ length: selectedWard.totalBeds }, (_, i) => i + 1).map(bedNum => {
+                                    const isOccupied = occupancy[selectedWard.id]?.beds.includes(bedNum);
+                                    const isSelected = selectedBedNumber === bedNum;
+                                    
+                                    return (
+                                        <button
+                                            key={bedNum}
+                                            type="button"
+                                            disabled={isOccupied}
+                                            onClick={() => setSelectedBedNumber(bedNum)}
+                                            className={`
+                                                relative flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
+                                                ${isOccupied 
+                                                    ? 'bg-red-900/20 border-red-900/50 text-red-500 opacity-70 cursor-not-allowed' 
+                                                    : isSelected
+                                                        ? 'bg-sky-600 border-sky-500 text-white shadow-lg shadow-sky-900/50 scale-105'
+                                                        : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
+                                                }
+                                            `}
+                                        >
+                                            <Bed size={20} className={isOccupied ? 'text-red-500' : (isSelected ? 'text-white' : 'text-gray-400')} />
+                                            <span className="text-xs font-bold mt-1">{bedNum}</span>
+                                            {isOccupied && (
+                                                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-600 rounded-full p-0.5">
+                                                    <X size={8} className="text-white" />
+                                                </div>
+                                            )}
+                                            {isSelected && (
+                                                <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-green-500 rounded-full p-0.5">
+                                                    <Check size={8} className="text-white" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="flex gap-4 mt-3 text-xs text-gray-400">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-gray-800 border border-gray-700 rounded"></div> Available
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-red-900/20 border border-red-900/50 rounded"></div> Occupied
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-sky-600 border border-sky-500 rounded"></div> Selected
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end space-x-4 pt-4 border-t border-gray-700">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">Cancel</button>
-                        <button type="submit" disabled={loading || !selectedWardId || isOccupiedError} className="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed">Confirm Admission</button>
+                        <button 
+                            type="submit" 
+                            disabled={loading || !selectedWardId || !selectedBedNumber} 
+                            className="px-6 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-sky-900/20"
+                        >
+                            Confirm Admission
+                        </button>
                     </div>
                 </form>
             )}

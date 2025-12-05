@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { db } from '../../services/firebase';
 import { Ward, Patient } from '../../types';
@@ -149,11 +150,11 @@ const WardManagement: React.FC = () => {
             const patientsInWard = await db.collection('patients')
                 .where('status', 'in', ['Admitted', 'PendingDischarge'])
                 .where('currentWardId', '==', selectedWard.id)
-                .limit(1)
                 .get();
 
             if (!patientsInWard.empty) {
-                addNotification('Cannot delete ward. Patients are currently admitted here.', 'error');
+                const count = patientsInWard.size;
+                addNotification(`Denied: This ward has ${count} active patient${count > 1 ? 's' : ''}. Discharge or transfer them first.`, 'error');
                 setDeleteModalOpen(false);
                 return;
             }

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { db, auth } from '../../services/firebase';
@@ -53,6 +54,31 @@ const Settings: React.FC = () => {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  const calculatePasswordStrength = (password: string) => {
+      let score = 0;
+      if (!password) return 0;
+      if (password.length > 6) score += 30;
+      if (password.length > 10) score += 30;
+      if (/[A-Z]/.test(password)) score += 15;
+      if (/[0-9]/.test(password)) score += 15;
+      if (/[^A-Za-z0-9]/.test(password)) score += 10;
+      return Math.min(score, 100);
+  };
+
+  const passwordStrength = useMemo(() => calculatePasswordStrength(passwordData.newPassword), [passwordData.newPassword]);
+
+  const getStrengthColor = (score: number) => {
+      if (score < 40) return 'bg-red-500';
+      if (score < 70) return 'bg-yellow-500';
+      return 'bg-green-500';
+  };
+
+  const getStrengthText = (score: number) => {
+      if (score < 40) return 'Weak';
+      if (score < 70) return 'Good';
+      return 'Strong';
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -166,6 +192,24 @@ const Settings: React.FC = () => {
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300">New Password</label>
               <input type="password" name="newPassword" id="newPassword" value={passwordData.newPassword} onChange={handlePasswordChange} required className={inputStyles} />
+              
+              {/* Password Strength Indicator */}
+              {passwordData.newPassword.length > 0 && (
+                  <div className="mt-2">
+                      <div className="flex justify-between items-center text-xs text-gray-400 mb-1">
+                          <span>Strength</span>
+                          <span className={passwordStrength < 40 ? 'text-red-400' : passwordStrength < 70 ? 'text-yellow-400' : 'text-green-400'}>
+                              {getStrengthText(passwordStrength)}
+                          </span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-1.5">
+                          <div 
+                              className={`h-1.5 rounded-full transition-all duration-300 ${getStrengthColor(passwordStrength)}`} 
+                              style={{ width: `${passwordStrength}%` }}
+                          ></div>
+                      </div>
+                  </div>
+              )}
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">Confirm New Password</label>

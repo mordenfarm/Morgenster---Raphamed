@@ -5,7 +5,7 @@ import { db } from '../../services/firebase';
 import { Ward, Patient, AdmissionRecord } from '../../types';
 import Modal from '../../components/utils/Modal';
 import LoadingSpinner from '../../components/utils/LoadingSpinner';
-import { Bed, Clock, User, Calendar, CheckCircle } from 'lucide-react';
+import { Bed, Clock, User, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface WardDetailsModalProps {
   ward: Ward;
@@ -19,6 +19,7 @@ interface OccupiedBedInfo {
 
 const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) => {
   const [beds, setBeds] = useState<Map<number, OccupiedBedInfo>>(new Map());
+  const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [occupiedCount, setOccupiedCount] = useState(0);
 
@@ -34,12 +35,19 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
           .get();
 
         const bedMap = new Map<number, OccupiedBedInfo>();
+        const unassigned: Patient[] = [];
         let count = 0;
         
         for (const doc of patientsSnapshot.docs) {
           const patient = { id: doc.id, ...doc.data() } as Patient;
+          
+          // Count every patient in this ward regardless of bed status
+          count++;
+
           if (patient.currentBedNumber) {
-            count++;
+            // Ensure bedNumber is treated as a number
+            const bedNum = Number(patient.currentBedNumber);
+            
             // Fetch the latest admission record for admission date
             const admissionSnapshot = await db.collection('patients').doc(patient.id!)
               .collection('admissionHistory').orderBy('admissionDate', 'desc').limit(1).get();
@@ -47,13 +55,17 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
             let admissionDate = null;
             if (!admissionSnapshot.empty) {
               const admissionRecord = admissionSnapshot.docs[0].data() as AdmissionRecord;
-              admissionDate = admissionRecord.admissionDate.toDate();
+              admissionDate = admissionRecord.admissionDate?.toDate ? admissionRecord.admissionDate.toDate() : new Date();
             }
 
-            bedMap.set(patient.currentBedNumber, { patient, admissionDate });
+            bedMap.set(bedNum, { patient, admissionDate });
+          } else {
+            // Patient is in the ward but has no bed number (Ghost patient)
+            unassigned.push(patient);
           }
         }
         setBeds(bedMap);
+        setUnassignedPatients(unassigned);
         setOccupiedCount(count);
       } catch (error) {
         console.error("Error fetching bed details:", error);
@@ -67,7 +79,7 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
   
   if (!ward) return null;
 
-  const freeBeds = ward.totalBeds - occupiedCount;
+  const freeBeds = Math.max(0, ward.totalBeds - occupiedCount);
 
   return (
     <Modal isOpen={true} onClose={onClose} title={`${ward.name} - Overview`} size="xl">
@@ -92,6 +104,33 @@ const WardDetailsModal: React.FC<WardDetailsModalProps> = ({ ward, onClose }) =>
                     <p className="text-2xl font-bold text-emerald-400">{freeBeds}</p>
                 </div>
             </div>
+
+            {/* Warning for Unassigned Patients (Ghost Patients) */}
+            {unassignedPatients.length > 0 && (
+                <div className="mb-6 bg-red-900/20 border border-red-800 rounded-lg p-4">
+                    <h4 className="text-red-400 font-bold flex items-center gap-2 mb-2">
+                        <AlertTriangle size={18} />
+                        Patients in Ward without Bed Assignment
+                    </h4>
+                    <p className="text-sm text-gray-300 mb-3">
+                        The following patients are listed in this ward but do not have a specific bed number assigned. 
+                        Click a patient to update their admission details.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {unassignedPatients.map(p => (
+                            <Link 
+                                key={p.id}
+                                to={`/patients/${p.id}`}
+                                className="px-3 py-1.5 bg-red-900/40 hover:bg-red-900/60 border border-red-700 rounded-md text-sm text-red-200 flex items-center gap-2 transition-colors"
+                                onClick={onClose}
+                            >
+                                <User size={14} />
+                                {p.name} {p.surname}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
