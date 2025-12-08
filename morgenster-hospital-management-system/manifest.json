@@ -4,12 +4,9 @@
   "short_name": "Morgenster HMS",
   "description": "Hospital management system for Morgenster Mission",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "any",
   "background_color": "#0D1117",
-  "theme_color": "#161B22",
-  "categories": ["medical", "productivity", "business"],
+  "theme_color": "#0D1117",
   "icons": [
     {
       "src": "https://i.ibb.co/TDT9QtC9/images.png",

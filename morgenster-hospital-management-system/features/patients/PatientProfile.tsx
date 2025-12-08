@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../../services/firebase';
@@ -922,7 +923,7 @@ const PatientProfile: React.FC = () => {
         try { await db.collection('patients').doc(patient.id).update({ status: 'PendingDischarge', dischargeRequesterId: userProfile.id }); addNotification('Discharge process initiated. Pending approval.', 'success'); fetchPatientData(true); } catch (error) { console.error("Error initiating discharge:", error); addNotification('Failed to initiate discharge.', 'error'); }
     };
 
-   const handlePrintFullReport = () => {
+    const handlePrintFullReport = () => {
     if (!patient) return;
 
     const styles = `
@@ -1929,3 +1930,5 @@ const PatientProfile: React.FC = () => {
 };
 
 export default PatientProfile;
+
+

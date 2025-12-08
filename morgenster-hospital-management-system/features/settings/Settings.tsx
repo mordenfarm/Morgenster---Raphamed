@@ -5,7 +5,6 @@ import { useNotification } from '../../context/NotificationContext';
 import { db, auth } from '../../services/firebase';
 import { Role } from '../../types';
 import firebase from 'firebase/compat/app';
-import { Download } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const { userProfile, currentUser } = useAuth();
@@ -16,31 +15,6 @@ const Settings: React.FC = () => {
   
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  
-  // PWA Install State
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-    }
-  };
 
   useEffect(() => {
     if (userProfile) {
@@ -172,18 +146,7 @@ const Settings: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
-        {deferredPrompt && (
-          <button 
-            onClick={handleInstallClick} 
-            className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg shadow-lg transition-colors animate-pulse"
-          >
-            <Download size={18} />
-            Install App
-          </button>
-        )}
-      </div>
+      <h1 className="text-3xl font-bold text-white mb-6">Settings</h1>
       
       {/* Profile Settings */}
       <div className="bg-[#161B22] border border-gray-700 p-8 rounded-lg shadow-md max-w-3xl mx-auto">
