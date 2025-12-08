@@ -29,7 +29,7 @@ import AnalyticsDashboard from './features/admin/AnalyticsDashboard';
 
 export default function App() {
   useEffect(() => {
-    seedDatabase();
+    //seedDatabase();
   }, []);
 
   return (
