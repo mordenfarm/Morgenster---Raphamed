@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, unreadMe
           {/* Mobile Logo */}
            <a href="#/" className="flex md:hidden items-center space-x-3 text-white">
             <img src="https://i.ibb.co/TDT9QtC9/images.png" alt="Morgenster Hospital Logo" className="h-10 w-10 rounded-full object-cover" />
-            <span className="font-semibold text-gray-200">Morgenster Hospital</span>
+            <span className="font-semibold text-gray-200">Raphamed Surgery</span>
           </a>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400">
             <X size={24} />
