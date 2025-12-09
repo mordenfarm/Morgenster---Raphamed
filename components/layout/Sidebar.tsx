@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, unreadMe
         <div className="flex items-center justify-between">
           {/* Desktop Logo */}
           <a href="#/" className="hidden md:flex items-center space-x-3 text-white">
-            <img src="https://i.ibb.co/TDT9QtC9/images.png" alt="RCZ Morgenster Hospital Logo" className="h-10 w-10 rounded-md object-cover" />
+            <img src="https://i.ibb.co/995FCHPR/raphamed.png" alt="RCZ Morgenster Hospital Logo" className="h-10 w-10 rounded-md object-cover" />
              <div>
                 <span className="block text-sm font-bold" style={{ color: '#00BFFF' }}>RCZ MORGENSTER</span>
                 <span className="block text-xs font-semibold text-gray-300">HOSPITAL</span>
@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, unreadMe
           </a>
           {/* Mobile Logo */}
            <a href="#/" className="flex md:hidden items-center space-x-3 text-white">
-            <img src="https://i.ibb.co/TDT9QtC9/images.png" alt="Morgenster Hospital Logo" className="h-10 w-10 rounded-full object-cover" />
+            <img src="https://i.ibb.co/995FCHPR/raphamed.png" alt="Morgenster Hospital Logo" className="h-10 w-10 rounded-full object-cover" />
             <span className="font-semibold text-gray-200">Raphamed Surgery</span>
           </a>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400">
