@@ -1,86 +1,112 @@
-import React from 'react';
-// FIX: Updated react-router-dom import for v5 compatibility.
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { getNavLinksForRole } from '../../constants';
-import { X } from 'lucide-react';
 
-interface SidebarProps {
-  sidebarOpen: boolean;
+import React, { useState, useEffect } from 'react';
+import { Menu, Bell, WifiOff } from 'lucide-react';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { auth } from '../../services/firebase';
+import Modal from '../utils/Modal';
+import { useAuth } from '../../context/AuthContext';
+
+interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
+  unreadCount: number;
   unreadMessageCount: number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, unreadMessageCount }) => {
+const Header: React.FC<HeaderProps> = ({ setSidebarOpen, unreadCount, unreadMessageCount }) => {
+  const navigate = useNavigate();
+  const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
   const { userProfile } = useAuth();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  const navLinks = userProfile ? getNavLinksForRole(userProfile.role) : [];
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center px-4 py-3 transition-colors duration-200 transform rounded-lg ${
-      isActive
-        ? 'bg-sky-600 text-white'
-        : 'text-gray-300 hover:bg-gray-700'
-    }`;
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    setLogoutModalOpen(false);
+    navigate('/login');
+  };
 
   return (
     <>
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-60 z-20 lg:hidden ${sidebarOpen ? 'block' : 'hidden'} no-print`}
-        onClick={() => setSidebarOpen(false)}
-      ></div>
-      <div
-        className={`fixed inset-y-0 left-0 w-64 px-4 py-5 bg-[#161B22] border-r border-gray-700 transform lg:translate-x-0 z-30 transition-transform duration-200 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } no-print`}
-      >
-        <div className="flex items-center justify-between">
-          {/* Desktop Logo */}
-          <a href="#/" className="hidden md:flex items-center justify-center w-full">
-            <img 
-                src="https://i.ibb.co/TDT9QtC9/images.png" 
-                alt="Hospital Logo" 
-                className="max-w-[180px] max-h-[60px] object-contain" 
-            />
-          </a>
-          {/* Mobile Logo */}
-           <a href="#/" className="flex md:hidden items-center justify-center">
-            <img 
-                src="https://i.ibb.co/995FCHPR/raphamed.png" 
-                alt="Hospital Logo" 
-                className="max-w-[150px] max-h-[50px] object-contain" 
-            />
-          </a>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400">
-            <X size={24} />
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 bg-[#161B22] border-b border-gray-700 no-print sticky top-0 z-40">
+        <div className="flex items-center min-w-0">
+          <button onClick={() => setSidebarOpen(true)} className="text-gray-400 focus:outline-none lg:hidden mr-3">
+            <span className="flickering-dot-container">
+                <Menu size={24} />
+                {unreadMessageCount > 0 && <span className="flickering-dot"></span>}
+            </span>
+          </button>
+          <div className="flex flex-col min-w-0">
+            <h1 className="hidden md:block text-lg font-semibold text-gray-200 truncate">SAPPHIRE CLINIC</h1>
+            <h1 className="block md:hidden text-lg font-semibold text-gray-200 truncate">Sapphire Clinic</h1>
+            {userProfile && (
+              <p className="text-xs text-gray-400 truncate max-w-[150px] sm:max-w-xs">
+                {userProfile.name} {userProfile.surname} <span className="hidden sm:inline">({userProfile.role})</span>
+              </p>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3 sm:space-x-6 flex-shrink-0 ml-2">
+          {!isOnline && (
+            <div className="hidden sm:flex items-center text-yellow-500 bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-700/50 animate-pulse">
+              <WifiOff size={16} className="mr-2" />
+              <span className="text-xs font-semibold">Offline Mode</span>
+            </div>
+          )}
+
+          <NavLink to="/notifications" className="text-gray-400 hover:text-white notification-badge-container p-1" aria-label="View notifications">
+            <Bell size={24} />
+            {unreadCount > 0 && (
+              <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+            )}
+          </NavLink>
+          
+          <button className="Btn" onClick={() => setLogoutModalOpen(true)} aria-label="Logout">
+            <div className="sign">
+              <svg viewBox="0 0 512 512">
+                <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path>
+              </svg>
+            </div>
+            <div className="text">Logout</div>
           </button>
         </div>
-        <nav className="mt-10 flex flex-col space-y-2">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.href}
-              to={link.href}
-              className={navLinkClass}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center">
-                    <span className={link.href === '/messages' ? 'flickering-dot-container' : ''}>
-                        {link.icon}
-                        {link.href === '/messages' && unreadMessageCount > 0 && <span className="flickering-dot"></span>}
-                    </span>
-                    <span className="mx-4 font-medium">{link.label}</span>
-                </div>
-                {link.href === '/messages' && unreadMessageCount > 0 && (
-                    <span className="message-badge">{unreadMessageCount > 9 ? '9+' : unreadMessageCount}</span>
-                )}
-            </div>
-            </NavLink>
-          ))}
-        </nav>
-      </div>
+      </header>
+
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        title="Confirm Logout"
+      >
+        <p className="text-gray-400">Are you sure you want to log out?</p>
+        <div className="mt-6 flex justify-end space-x-4">
+          <button
+            onClick={() => setLogoutModalOpen(false)}
+            className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-sky-500"
+          >
+            Confirm Logout
+          </button>
+        </div>
+      </Modal>
     </>
   );
 };
 
-export default Sidebar;
+export default Header;
