@@ -142,7 +142,7 @@ const BillDetails: React.FC = () => {
                 </div>
                 <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3">
                     <p className="text-sm text-gray-400 sm:order-2 font-mono">ID: {bill.id?.slice(0, 8)}...</p>
-                    <img src="https://i.ibb.co/TDT9QtC9/images.png" alt="Logo" className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg object-cover sm:ml-auto sm:order-1" />
+                    <img src="https://i.ibb.co/995FCHPR/raphamed.png" alt="Logo" className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg object-cover sm:ml-auto sm:order-1" />
                 </div>
             </div>
 
