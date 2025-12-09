@@ -1,11 +1,11 @@
-
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Morgenster Hospital</title>
-    <link rel="icon" type="image/png" href="https://i.ibb.co/TDT9QtC9/images.png" />
+    <title>Raphamed Surgery | Morgenster Hospital</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/LdYLRYG8/raphamed-favicon.png" />
     <script>
       // Aggressively suppress Tailwind CDN production warning
       (function() {
@@ -143,6 +143,44 @@
     }
     .welcome-toast.hide {
       animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Notification Container */
+    .notification-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        pointer-events: none; /* Allow clicks to pass through empty space */
+    }
+
+    /* Modern Notification Toast */
+    .modern-notification {
+        pointer-events: auto; /* Re-enable clicks on the toast itself */
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        color: white;
+        min-width: 300px;
+        max-width: 400px;
+        transform: translateX(120%);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        opacity: 0;
+    }
+
+    .modern-notification.slide-in {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .modern-notification.slide-out {
+        transform: translateX(120%);
+        opacity: 0;
     }
 
     /* Ward Selection Card Styles */
