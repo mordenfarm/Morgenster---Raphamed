@@ -48,8 +48,8 @@ const Header: React.FC<HeaderProps> = ({ setSidebarOpen, unreadCount, unreadMess
             </span>
           </button>
           <div className="flex flex-col min-w-0">
-            <h1 className="hidden md:block text-lg font-semibold text-gray-200 truncate">RCZ MORGENSTER HOSPITAL</h1>
-            <h1 className="block md:hidden text-lg font-semibold text-gray-200 truncate">Morgenster</h1>
+            <h1 className="hidden md:block text-lg font-semibold text-gray-200 truncate">RAPHAMED SURGERY</h1>
+            <h1 className="block md:hidden text-lg font-semibold text-gray-200 truncate">Raphamed Surgery</h1>
             {userProfile && (
               <p className="text-xs text-gray-400 truncate max-w-[150px] sm:max-w-xs">
                 {userProfile.name} {userProfile.surname} <span className="hidden sm:inline">({userProfile.role})</span>
