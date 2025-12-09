@@ -1,4 +1,4 @@
-
+/* context/NotificationContext.tsx */
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 
@@ -28,29 +28,34 @@ const NotificationComponent: React.FC<Notification & { onDismiss: (id: number) =
     const [isDismissing, setIsDismissing] = useState(false);
 
     useEffect(() => {
+        // Show for 2 seconds as requested
         const timer = setTimeout(() => {
             setIsDismissing(true);
+            // Wait for animation to finish before removing from state
             const dismissTimer = setTimeout(() => {
                 onDismiss(id);
             }, 400); // Animation duration
             return () => clearTimeout(dismissTimer);
-        }, 2500); // Increased duration to read offline messages
+        }, 2000); 
         return () => clearTimeout(timer);
     }, [id, onDismiss]);
 
     const typeStyles = {
-        success: { icon: <CheckCircle className="text-green-400" /> },
-        error: { icon: <XCircle className="text-red-400" /> },
-        warning: { icon: <AlertTriangle className="text-yellow-400" /> },
-        info: { icon: <Info className="text-sky-400" /> }
+        success: { icon: <CheckCircle className="text-green-400" size={20} />, bg: 'bg-gray-800', border: 'border-green-500' },
+        error: { icon: <XCircle className="text-red-400" size={20} />, bg: 'bg-gray-800', border: 'border-red-500' },
+        warning: { icon: <AlertTriangle className="text-yellow-400" size={20} />, bg: 'bg-gray-800', border: 'border-yellow-500' },
+        info: { icon: <Info className="text-sky-400" size={20} />, bg: 'bg-gray-800', border: 'border-sky-500' }
     };
 
     const styles = typeStyles[type];
 
     return (
-        <div className={`modern-notification ${isDismissing ? 'animate-slide-out-top' : 'animate-slide-in-top'}`}>
-            <div className="flex-shrink-0">{styles.icon}</div>
-            <p className="text-gray-200">{message}</p>
+        <div 
+            className={`modern-notification ${isDismissing ? 'slide-out' : 'slide-in'} ${styles.bg} border-l-4 ${styles.border}`}
+            role="alert"
+        >
+            <div className="flex-shrink-0 mr-3">{styles.icon}</div>
+            <p className="text-gray-100 text-sm font-medium">{message}</p>
         </div>
     );
 };
@@ -60,7 +65,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const addNotification = useCallback((message: string, type: NotificationType) => {
-    // Append offline status if applicable
     const isOffline = !navigator.onLine;
     let finalMessage = message;
     
