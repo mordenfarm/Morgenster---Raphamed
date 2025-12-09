@@ -1,4 +1,3 @@
-
 import React from 'react';
 // FIX: Updated react-router-dom import for v5 compatibility.
 import { NavLink } from 'react-router-dom';
@@ -37,17 +36,20 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, unreadMe
       >
         <div className="flex items-center justify-between">
           {/* Desktop Logo */}
-          <a href="#/" className="hidden md:flex items-center space-x-3 text-white">
-            <img src="https://i.ibb.co/995FCHPR/raphamed.png" alt="RCZ Morgenster Hospital Logo" className="h-10 w-10 rounded-md object-cover" />
-             <div>
-                <span className="block text-sm font-bold" style={{ color: '#00BFFF' }}>RCZ MORGENSTER</span>
-                <span className="block text-xs font-semibold text-gray-300">HOSPITAL</span>
-            </div>
+          <a href="#/" className="hidden md:flex items-center justify-center w-full">
+            <img 
+                src="https://i.ibb.co/TDT9QtC9/images.png" 
+                alt="Hospital Logo" 
+                className="max-w-[180px] max-h-[60px] object-contain" 
+            />
           </a>
           {/* Mobile Logo */}
-           <a href="#/" className="flex md:hidden items-center space-x-3 text-white">
-            <img src="https://i.ibb.co/995FCHPR/raphamed.png" alt="Morgenster Hospital Logo" className="h-10 w-10 rounded-full object-cover" />
-            <span className="font-semibold text-gray-200">Raphamed Surgery</span>
+           <a href="#/" className="flex md:hidden items-center justify-center">
+            <img 
+                src="https://i.ibb.co/995FCHPR/raphamed.png" 
+                alt="Hospital Logo" 
+                className="max-w-[150px] max-h-[50px] object-contain" 
+            />
           </a>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400">
             <X size={24} />
