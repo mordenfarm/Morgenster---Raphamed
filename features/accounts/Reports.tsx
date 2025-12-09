@@ -853,10 +853,10 @@ const Reports: React.FC = () => {
                         {/* Report Header */}
                         <div className="flex justify-between items-start pb-4 border-b border-slate-200">
                              <div className="flex items-center gap-4">
-                                <img src="https://i.ibb.co/TDT9QtC9/images.png" alt="Logo" className="h-16 w-16 rounded-lg object-cover" />
+                                <img src="https://i.ibb.co/LdYLRYG8/raphamed-favicon.png" alt="Logo" className="h-16 w-16 rounded-lg object-cover" />
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-900">RCZ MORGENSTER HOSPITAL</h2>
-                                    <p className="text-sm text-slate-500">Morgenster Mission, Masvingo, Zimbabwe</p>
+                                    <h2 className="text-2xl font-bold text-slate-900">RAPHAMED SURGERY</h2>
+                                    <p className="text-sm text-slate-500">Masvingo, Zimbabwe</p>
                                 </div>
                             </div>
                             <div className="text-right">
