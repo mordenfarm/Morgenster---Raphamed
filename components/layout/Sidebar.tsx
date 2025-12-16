@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, unreadMe
           {/* Desktop Logo */}
           <a href="#/" className="hidden md:flex items-center justify-center w-full">
             <img 
-                src="https://i.ibb.co/TDT9QtC9/images.png" 
+                src="https://i.ibb.co/995FCHPR/raphamed.png" 
                 alt="Hospital Logo" 
                 className="max-w-[180px] max-h-[60px] object-contain" 
             />
